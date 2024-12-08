@@ -1,32 +1,57 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { LineChart } from './line-chart'
-import type { SurveyData } from "@/types/drone"
-import { Button } from './ui/button'
-import { Battery, MapPin, Wifi } from 'lucide-react'
-import Link from 'next/link'
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { LineChart } from "./line-chart";
+import type { SurveyData } from "@/types/drone";
+import { Button } from "@/components/ui/button";
+import { Battery, MapPin, Wifi } from 'lucide-react';
+import Link from "next/link";
+
+import { useRecoilValue } from "recoil";
+import { droneAtom } from "./states";
+
+
+import dynamic from "next/dynamic";
+const DroneMap = dynamic(() => import("./DroneMap"), { ssr: false });
 
 interface DroneFeedProps {
-  droneId: string
+  droneId: string;
 }
 
 export function DroneFeed({ droneId }: DroneFeedProps) {
+
+  const drone = useRecoilValue(droneAtom);
+  useEffect(()=>{
+    console.log("from here ", drone);
+
+    
+  }, [drone])
+  
+ 
+
+
+  const startPoint: [number, number] = [28.896665, 77.117577];
+  const destination: [number, number] = [28.896, 77.117];
+
   const [surveyData, setSurveyData] = useState<SurveyData>({
-    frontView: '/placeholder-front.jpg',
-    topView: '/placeholder-top.jpg',
+    frontView: "/placeholder-house.png",
+    topView: "/placeholder-house.png",
     telemetry: {
       altitude: 100,
       speed: 15,
       battery: 75,
-      signal: 90
+      signal: 90,
     },
     coordinates: {
-      lat: 28.9845,
-      lng: 77.7064
-    }
-  })
+      lat: 28.8966123,
+      lng: 77.1175123,
+    },
+  });
+
+  if(!drone){
+    return <>Loading...</>
+  }
 
   return (
     <motion.div
@@ -65,10 +90,19 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
           >
             <h3 className="text-lg font-medium mb-2">Drone Information</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><span className="font-medium">Model:</span> DJI Mavic 3</li>
-              <li><span className="font-medium">Serial Number:</span> DJI123456789</li>
-              <li><span className="font-medium">Last Maintenance:</span> 2023-05-15</li>
-              <li><span className="font-medium">Flight Hours:</span> 120</li>
+              <li>
+                <span className="font-medium">Model:</span> DJI Mavic 3
+              </li>
+              <li>
+                <span className="font-medium">Serial Number:</span> DJI123456789
+              </li>
+              <li>
+                <span className="font-medium">Last Maintenance:</span>{" "}
+                2023-05-15
+              </li>
+              <li>
+                <span className="font-medium">Flight Hours:</span> 120
+              </li>
             </ul>
           </motion.div>
           <motion.div
@@ -82,30 +116,46 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
                 className="flex items-center gap-2"
               >
                 <Battery className="h-5 w-5 text-primary" />
-                <span className="text-sm text-muted-foreground">Battery: {surveyData.telemetry.battery}%</span>
+                <span className="text-sm text-muted-foreground">
+                  Battery: {surveyData.telemetry.battery}%
+                </span>
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 className="flex items-center gap-2"
               >
                 <Wifi className="h-5 w-5 text-primary" />
-                <span className="text-sm text-muted-foreground">Signal: {surveyData.telemetry.signal}%</span>
+                <span className="text-sm text-muted-foreground">
+                  Signal: {surveyData.telemetry.signal}%
+                </span>
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 className="flex items-center gap-2"
               >
                 <MapPin className="h-5 w-5 text-primary" />
-                <span className="text-sm text-muted-foreground">Altitude: {surveyData.telemetry.altitude}m</span>
+                <span className="text-sm text-muted-foreground">
+                  Altitude: {surveyData.telemetry.altitude}m
+                </span>
               </motion.div>
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 className="flex items-center gap-2"
               >
-                <svg className="h-5 w-5 text-primary" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13 20H11V8L5.5 13.5L4.08 12.08L12 4.16L19.92 12.08L18.5 13.5L13 8V20Z" fill="currentColor"/>
+                <svg
+                  className="h-5 w-5 text-primary"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M13 20H11V8L5.5 13.5L4.08 12.08L12 4.16L19.92 12.08L18.5 13.5L13 8V20Z"
+                    fill="currentColor"
+                  />
                 </svg>
-                <span className="text-sm text-muted-foreground">Speed: {surveyData.telemetry.speed}km/h</span>
+                <span className="text-sm text-muted-foreground">
+                  Speed: {surveyData.telemetry.speed}km/h
+                </span>
               </motion.div>
             </div>
           </motion.div>
@@ -114,8 +164,12 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
           whileHover={{ scale: 1.02 }}
           className="rounded-lg bg-muted overflow-hidden h-[300px]"
         >
-          <div className="p-4 text-muted-foreground">Live Location</div>
-          <div className="h-full w-full bg-[url('/map-background.png')] bg-cover bg-center" />
+          <DroneMap
+            drone={drone}
+            startPoint={startPoint}
+            destination={destination}
+            style={{ height: "300px", width: "100%" }}
+          />
         </motion.div>
       </motion.div>
 
@@ -125,12 +179,11 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
         transition={{ duration: 0.5, delay: 0.4 }}
         className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="space-y-2"
-        >
+        <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground font-medium">Front View</span>
+            <span className="text-sm text-muted-foreground font-medium">
+              Front View
+            </span>
             <span className="text-xs text-primary">Recording</span>
           </div>
           <div className="aspect-video rounded-lg overflow-hidden">
@@ -141,12 +194,11 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
             />
           </div>
         </motion.div>
-        <motion.div
-          whileHover={{ scale: 1.02 }}
-          className="space-y-2"
-        >
+        <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground font-medium">Top View</span>
+            <span className="text-sm text-muted-foreground font-medium">
+              Top View
+            </span>
             <span className="text-xs text-primary">Processing</span>
           </div>
           <div className="aspect-video rounded-lg overflow-hidden">
@@ -165,7 +217,9 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
         transition={{ duration: 0.5, delay: 0.5 }}
         className="rounded-lg border p-4"
       >
-        <div className="text-sm text-muted-foreground font-medium mb-2">Telemetry Data</div>
+        <div className="text-sm text-muted-foreground font-medium mb-2">
+          Telemetry Data
+        </div>
         <LineChart />
       </motion.div>
 
@@ -183,5 +237,6 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
         </Link>
       </motion.div>
     </motion.div>
-  )
+  );
 }
+

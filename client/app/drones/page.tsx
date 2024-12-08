@@ -8,7 +8,6 @@ import { regionAtom } from '@/components/states'
 
 export default function Home() {
   const region = useRecoilValue(regionAtom);
-  console.log(region.drones)
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 relative overflow-hidden">
       <svg

@@ -49,7 +49,7 @@ const RealTimeMap: React.FC<RealTimeMapProps> = ({
   isLoading,
   hexagon,
   centerProp,
-  zoom = 17,
+  zoom = 18,
   markers = [],
   scrollWheelZoom = true,
   style = { height: "100%", width: "100%" },
@@ -67,13 +67,13 @@ const RealTimeMap: React.FC<RealTimeMapProps> = ({
   return (
     <MapContainer
       center={centerProp as [number, number]}
-      zoom={12}
+      zoom={14}
       scrollWheelZoom={scrollWheelZoom}
       style={style}
       className={className}
     >
       <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        url="http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
 

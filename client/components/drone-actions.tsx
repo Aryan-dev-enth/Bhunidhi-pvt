@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
+
 export function DroneActions() {
   const router = useRouter();
   const [confirmationType, setConfirmationType] = useState("");
@@ -49,7 +50,7 @@ export function DroneActions() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setConfirmationType(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setConfirmationType("")}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDroneLocalityConfirm}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -74,7 +75,7 @@ export function DroneActions() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setConfirmationType(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setConfirmationType("")}>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleAllDronesConfirm}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

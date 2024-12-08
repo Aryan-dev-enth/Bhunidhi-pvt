@@ -24,3 +24,14 @@ export const regionAtom = atom({
   }
   
 });
+
+export const dronesAtom = atom({
+  key: 'dronesState', 
+  default: [], 
+});
+
+
+export const droneAtom = atom({
+  key: 'droneState',
+  default: null
+})
