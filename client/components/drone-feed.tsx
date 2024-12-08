@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LineChart } from "./line-chart";
-import type { SurveyData } from "@/types/drone";
+import { LineChart } from "./LineChart";
+import type { SurveyData, DroneState } from "@/types/drone";
 import { Button } from "@/components/ui/button";
-import { Battery, MapPin, Wifi } from 'lucide-react';
+import { Battery, MapPin, Wifi, Thermometer, Compass, FastForwardIcon as Speed } from 'lucide-react';
 import Link from "next/link";
-
+import { io, Socket } from "socket.io-client";
 import { useRecoilValue } from "recoil";
 import { droneAtom } from "./states";
-
-
 import dynamic from "next/dynamic";
+import { MotionChart } from "./motion-chart";
+import { SystemChart } from "./system-chat";
+
 const DroneMap = dynamic(() => import("./DroneMap"), { ssr: false });
 
 interface DroneFeedProps {
@@ -20,16 +21,63 @@ interface DroneFeedProps {
 }
 
 export function DroneFeed({ droneId }: DroneFeedProps) {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [status, setStatus] = useState<string>("");
+  const [droneState, setDroneState] = useState<DroneState>({
+    pitch: 0,
+    roll: 0,
+    yaw: 0,
+    vgx: 0,
+    vgy: 0,
+    vgz: 0,
+    templ: 0,
+    temph: 0,
+    tof: 0,
+    h: 0,
+    bat: 0,
+    baro: 0,
+    time: 0,
+    agx: 0,
+    agy: 0,
+    agz: 0
+  });
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
+  const [isVideoStreamActive, setVideoStreamActive] = useState<boolean>(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const drone = useRecoilValue(droneAtom);
-  useEffect(()=>{
-    console.log("from here ", drone);
+  const drone = useRecoilValue<any>(droneAtom);
 
-    
-  }, [drone])
-  
- 
+  useEffect(() => {
+    const socketInstance = io("http://localhost:8000");
+    setSocket(socketInstance);
 
+    socketInstance.on("connect", () => {
+      console.log("Connected to server");
+    });
+
+    socketInstance.on("disconnect", () => {
+      console.log("Disconnected from server");
+    });
+
+    socketInstance.on("status", (message: string) => {
+      setStatus(message);
+    });
+
+    socketInstance.on("dronestate", (state: DroneState) => {
+      setDroneState(prevState => ({...prevState, ...state}));
+    });
+
+    return () => {
+      socketInstance.disconnect();
+    };
+  }, []);
+
+  const sendCommand = (command: string) => {
+    if (socket) {
+      socket.emit("command", command);
+      console.log(`Command sent: ${command}`);
+    }
+  };
 
   const startPoint: [number, number] = [28.896665, 77.117577];
   const destination: [number, number] = [28.896, 77.117];
@@ -49,9 +97,26 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
     },
   });
 
-  if(!drone){
-    return <>Loading...</>
-  }
+  const renderDroneStateInfo = () => (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="flex items-center gap-2">
+        <Compass className="h-5 w-5 text-primary" />
+        <span className="text-sm">Yaw: {droneState.yaw}°</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Speed className="h-5 w-5 text-primary" />
+        <span className="text-sm">Speed: {Math.sqrt(droneState.vgx**2 + droneState.vgy**2 + droneState.vgz**2).toFixed(2)} cm/s</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Thermometer className="h-5 w-5 text-primary" />
+        <span className="text-sm">Temp: {droneState.templ}°C - {droneState.temph}°C</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <Battery className="h-5 w-5 text-primary" />
+        <span className="text-sm">Battery: {droneState.bat}%</span>
+      </div>
+    </div>
+  );
 
   return (
     <motion.div
@@ -69,7 +134,7 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
         <div className="flex items-center gap-2">
           <h2 className="text-xl font-semibold">Drone {droneId}</h2>
           <span className="rounded-full bg-success/20 px-2 py-0.5 text-sm text-success-foreground">
-            Available
+            {status || "Connecting..."}
           </span>
         </div>
         <Link href="/drones">
@@ -88,22 +153,8 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
             whileHover={{ scale: 1.02 }}
             className="rounded-lg bg-secondary p-4"
           >
-            <h3 className="text-lg font-medium mb-2">Drone Information</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <span className="font-medium">Model:</span> DJI Mavic 3
-              </li>
-              <li>
-                <span className="font-medium">Serial Number:</span> DJI123456789
-              </li>
-              <li>
-                <span className="font-medium">Last Maintenance:</span>{" "}
-                2023-05-15
-              </li>
-              <li>
-                <span className="font-medium">Flight Hours:</span> 120
-              </li>
-            </ul>
+            <h3 className="text-lg font-medium mb-2">Motion Status</h3>
+             <MotionChart droneState={droneState}/>
           </motion.div>
           <motion.div
             whileHover={{ scale: 1.02 }}
@@ -111,55 +162,25 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
           >
             <h3 className="text-lg font-medium mb-2">Current Status</h3>
             <div className="grid grid-cols-2 gap-4">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2"
-              >
-                <Battery className="h-5 w-5 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  Battery: {surveyData.telemetry.battery}%
-                </span>
-              </motion.div>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2"
-              >
-                <Wifi className="h-5 w-5 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  Signal: {surveyData.telemetry.signal}%
-                </span>
-              </motion.div>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2"
-              >
-                <MapPin className="h-5 w-5 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  Altitude: {surveyData.telemetry.altitude}m
-                </span>
-              </motion.div>
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className="flex items-center gap-2"
-              >
-                <svg
-                  className="h-5 w-5 text-primary"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M13 20H11V8L5.5 13.5L4.08 12.08L12 4.16L19.92 12.08L18.5 13.5L13 8V20Z"
-                    fill="currentColor"
-                  />
-                </svg>
-                <span className="text-sm text-muted-foreground">
-                  Speed: {surveyData.telemetry.speed}km/h
-                </span>
-              </motion.div>
+              <Button onClick={() => {
+                sendCommand('command');
+              }}>Initialize</Button>
+              <Button onClick={() => {
+                sendCommand('takeoff');
+              }}>Fly</Button>
+              <Button onClick={() => {
+                sendCommand('land');
+              }}>Land</Button>
             </div>
+            {renderDroneStateInfo()}
           </motion.div>
         </div>
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="rounded-lg bg-muted overflow-hidden h-[300px]"
+        >
+          <SystemChart droneState={droneState}/>
+        </motion.div>
         <motion.div
           whileHover={{ scale: 1.02 }}
           className="rounded-lg bg-muted overflow-hidden h-[300px]"
@@ -171,6 +192,7 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
             style={{ height: "300px", width: "100%" }}
           />
         </motion.div>
+        
       </motion.div>
 
       <motion.div
@@ -187,11 +209,15 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
             <span className="text-xs text-primary">Recording</span>
           </div>
           <div className="aspect-video rounded-lg overflow-hidden">
-            <img
-              src={surveyData.frontView}
-              alt="Front view"
-              className="h-full w-full object-cover"
-            />
+            {isVideoStreamActive ? (
+              <video ref={videoRef} src={videoSrc || undefined} autoPlay muted playsInline className="h-full w-full object-cover" />
+            ) : (
+              <img
+                src={surveyData.frontView}
+                alt="Front view"
+                className="h-full w-full object-cover"
+              />
+            )}
           </div>
         </motion.div>
         <motion.div whileHover={{ scale: 1.02 }} className="space-y-2">
@@ -211,17 +237,7 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
         </motion.div>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="rounded-lg border p-4"
-      >
-        <div className="text-sm text-muted-foreground font-medium mb-2">
-          Telemetry Data
-        </div>
-        <LineChart />
-      </motion.div>
+     
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -229,7 +245,7 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
         transition={{ duration: 0.5, delay: 0.6 }}
         className="flex justify-end gap-4"
       >
-        <Button variant="outline">Cancel Survey</Button>
+        <Button variant="outline" onClick={() => sendCommand('emergency')}>Emergency Stop</Button>
         <Link href={`/drones/${droneId}/conclude`}>
           <Button className="bg-primary hover:bg-primary/90">
             Conclude Survey

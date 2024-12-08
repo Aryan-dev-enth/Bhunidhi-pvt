@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
+import { useRecoilValue } from 'recoil';
+import { regionAtom } from './states.js'; // Adjust the import path as needed
 
 export function DroneActions() {
   const router = useRouter();
+  const region = useRecoilValue(regionAtom);
   const [confirmationType, setConfirmationType] = useState("");
 
   const handleDroneLocalityConfirm = () => {
@@ -37,6 +39,7 @@ export function DroneActions() {
           <Button 
             className="flex-1 gap-2 bg-blue-600 hover:bg-blue-700" 
             onClick={() => setConfirmationType('locality')}
+            disabled={!region} // Disable if no region is selected
           >
             <Drone className="h-4 w-4" />
             Drone in locality
@@ -62,6 +65,7 @@ export function DroneActions() {
             variant="outline" 
             className="flex-1 gap-2"
             onClick={() => setConfirmationType('allDrones')}
+            disabled={!region} // Disable if no region is selected
           >
             <Users className="h-4 w-4" />
             All Drone

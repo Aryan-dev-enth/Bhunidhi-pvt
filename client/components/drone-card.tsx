@@ -18,10 +18,10 @@ const RealTimeMap = dynamic(() => import("./Map"), { ssr: false });
 export function DroneCard({ drone }: any) {
 
   
-  const setDrone = useSetRecoilState(droneAtom);
+  const setDrone = useSetRecoilState<any>(droneAtom);
 
 
-  const region= useRecoilValue(regionAtom);
+  const region= useRecoilValue<any>(regionAtom);
   const dronePoint =[ region.geolocation[0][0],region.geolocation[0][1]]
   const [isExpanded, setIsExpanded] = useState(false);
   const mapCenter: any = dronePoint;
@@ -62,14 +62,14 @@ export function DroneCard({ drone }: any) {
                 • {drone.status? drone.status.charAt(0).toUpperCase()+drone.status.slice(1): "No region selected"}
               </span>
             </div>
-            {drone.currentSurvey && (
+            {drone.surveyQueue && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-sm text-muted-foreground"
               >
-                <div>Current Survey: {drone.currentSurvey.location}</div>
-                <div>Region: {drone.currentSurvey.region}</div>
+                <div>Current Survey: {drone.surveyQueue[0]}</div>
+                
               </motion.div>
             )}
           </div>

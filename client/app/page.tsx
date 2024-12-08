@@ -6,9 +6,13 @@ import { DroneActions } from "@/components/drone-actions";
 import { AlertList } from "@/components/alert-list";
 import { Navbar } from "@/components/Navbar";
 
-
+import Lottie from "react-lottie";
+import { useRecoilValue } from "recoil";
+import { globalLoader } from "@/components/states";
 export default function Home() {
-  
+  const loader = useRecoilValue<any>(globalLoader);
+
+ 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">

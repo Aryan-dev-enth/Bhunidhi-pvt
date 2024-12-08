@@ -15,7 +15,7 @@ interface LineChartProps {
 }
 
 export function LineChart({ droneState }: LineChartProps) {
-  const [chartData, setChartData] = useState({
+  const [chartData, setChartData] = useState<any>({
     labels: [],
     datasets: [
       { label: 'Pitch', data: [], borderColor: 'rgb(255, 99, 132)', tension: 0.1 },
