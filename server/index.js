@@ -4,14 +4,15 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import dgram from 'dgram';
 import { Server } from 'socket.io';
-import wait from 'waait';
-import throttle from 'lodash/throttle.js';
+import { spawn } from 'child_process';
 
 import regionRoutes from './routes/regionRoutes.js';
 import siteRoutes from './routes/siteRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 
+import {createServer} from "http"
+import WebSocket from 'ws';
 dotenv.config();
 
 const app = express();
@@ -41,10 +42,6 @@ drone.bind(dronePort);
 const droneState = dgram.createSocket('udp4');
 droneState.bind(8890);
 
-const videoStream = dgram.createSocket('udp4');
-videoStream.bind(11111);
-
-// Parse Drone State
 function parseState(state) {
   return state
     .split(';')
@@ -57,7 +54,7 @@ function parseState(state) {
 
 drone.on('message', message => {
   console.log(`🤖 Drone Message: ${message}`);
-  io.sockets.emit('status', message.toString()); // Emit drone message to frontend
+  io.sockets.emit('status', message.toString()); 
 });
 
 io.on('connection', (socket) => {
@@ -75,29 +72,59 @@ io.on('connection', (socket) => {
   });
 
   socket.on('startVideoStream', () => {
-    drone.send('streamon', 0, 'streamon'.length, dronePort, droneHost, (err) => {
+    drone.send('streamon', 0, "streamon".length ,dronePort, droneHost, (err) => {
       if (err) {
         console.log('Error starting video stream:', err);
       }
     });
     console.log('Video stream started.');
+    setTimeout(function() {
+      var args = [
+        "-i", "udp://0.0.0.0:11111",
+        "-r", "30",
+        "-s", "960x720",
+        "-codec:v", "mpeg1video",
+        "-b", "800k",
+        "-f", "mpegts",
+        "http://127.0.0.1:3001/stream"
+      ];
+    
+      var streamer = spawn('ffmpeg', args);
+      streamer.on("exit", function(code){
+          console.log("Failure", code);
+      });
+    }, 3000);
   });
 });
 
-droneState.on('message', throttle((state) => {
+droneState.on('message', (state) => {
   const formattedState = parseState(state.toString());
   io.sockets.emit('dronestate', formattedState);
-}, 100));
-
-videoStream.on('message', (msg) => {
-  console.log('Video Stream Data:', msg);
-  
-    const base64Data = msg.toString('base64');
-    console.log(base64Data)
-
-    io.sockets.emit('videoStream', base64Data); 
 });
 
+const streamServer = createServer(function(request, response) {
+  console.log(
+		request.socket.remoteAddress + ':' +
+		request.socket.remotePort
+	);
+
+  request.on('data', function(data) {
+    webSocketServer.broadcast(data);
+  });
+
+}).listen(3001);
+
+const webSocketServer = new WebSocket.Server({
+  server: streamServer
+});
+
+webSocketServer.broadcast = function(data) {
+  webSocketServer.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data);
+    }
+  });
+};
 
 mongoose.connect(MONGODB_URI)
   .then(() => {

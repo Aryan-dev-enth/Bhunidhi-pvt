@@ -1,6 +1,5 @@
 import User from "../models/User.js";
 
-// Register a new user
 export const register = async (req, res) => {
   const { name, email, phone, password, address } = req.body;
 
@@ -10,7 +9,7 @@ export const register = async (req, res) => {
       email,
       phone,
       password,
-      address, // Assume address contains { lat, lon }
+      address,
     });
 
     await newUser.save();
@@ -29,7 +28,7 @@ export const register = async (req, res) => {
   }
 };
 
-// Login user
+
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -57,7 +56,7 @@ export const login = async (req, res) => {
   }
 };
 
-// Get user by ID
+
 export const getUser = async (req, res) => {
   const { id } = req.params;
 

@@ -89,7 +89,7 @@ const RealTimeMap: React.FC<RealTimeMapProps> = ({
         <Polygon
           positions={hexagonCoordinates}
           pathOptions={{
-            color: "black",
+            color: "white",
             weight: 2,
             fillOpacity: 0.3,
           }}

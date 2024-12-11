@@ -65,10 +65,9 @@ export const getAllReports = async (req, res) => {
 
 export const getReportById = async (req, res) => {
   try {
-    const report = await Report.findById(req.params.id)
-      .populate('user', 'name email')
-      .populate('site')
-      .exec();
+    const report = await Report.find({
+      user: req.params.id
+    });
 
     if (!report) {
       return res.status(404).json({ message: 'Report not found.' });

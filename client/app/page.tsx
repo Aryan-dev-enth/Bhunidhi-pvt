@@ -9,11 +9,19 @@ import { Navbar } from "@/components/Navbar";
 import Lottie from "react-lottie";
 import { useRecoilValue } from "recoil";
 import { globalLoader } from "@/components/states";
+import animationData from '../lottie/satellite-animation.json'
+
 export default function Home() {
   const loader = useRecoilValue<any>(globalLoader);
 
- 
-
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: animationData,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
       <div className="mx-auto max-w-7xl p-4">
@@ -24,9 +32,8 @@ export default function Home() {
             <MapView />
             <div className="space-y-6">
               <SearchLocation />
-              <div className="flex justify-center">
-                <img src="/drone.png" alt="" />
-              </div>
+
+              <Lottie options={defaultOptions} height={200} width={200} />
               <DroneActions />
               <AlertList />
             </div>

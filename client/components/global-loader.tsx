@@ -1,6 +1,6 @@
 import React from "react";
 import Lottie from "react-lottie";
-import animationData from "../lottie/satellite-animation.json";
+import animationData from "../lottie/home-animation.json";
 import { Navbar } from "./Navbar";
 
 export default function RegionLoader() {
@@ -16,7 +16,7 @@ export default function RegionLoader() {
     <div className="h-full w-full flex justify-center items-center  p-8 rounded-lg shadow-xl space-y-4">
       <div className="text-center space-y-4">
        
-        <Lottie options={defaultOptions} height={400} width={400} />
+        <Lottie options={defaultOptions} height={300} width={300} />
         <p className="text-lg text-secondary-foreground">
           Analyzing construction points.
         </p>

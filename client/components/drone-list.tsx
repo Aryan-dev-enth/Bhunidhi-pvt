@@ -68,6 +68,7 @@ export function DroneList({ drones }: { drones: any[] }) {
       preserveAspectRatio: "xMidYMid slice",
     },
   };
+  
 
   return (
     <div className="space-y-4">

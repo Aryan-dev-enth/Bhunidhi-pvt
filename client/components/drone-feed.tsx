@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { motion } from "framer-motion";
 import type { SurveyData, DroneState } from "@/types/drone";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,9 @@ interface DroneFeedProps {
   droneId: string;
 }
 
+const VIDEO_URL = "ws://localhost:3001/stream";
+import JSMpeg from "@cycjimmy/jsmpeg-player";
+
 export function DroneFeed({ droneId }: DroneFeedProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [status, setStatus] = useState<string>("");
@@ -50,7 +53,9 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
   });
 
   const frontVideoRef = useRef<HTMLVideoElement>(null);
-  const topVideoRef = useRef<HTMLVideoElement>(null);
+  // const topVideoRef = useRef<HTMLVideoElement>(null);
+  const topVideoRef = useRef<HTMLCanvasElement>(null);
+  // const [liveStrea]
 
   const drone = useRecoilValue<any>(droneAtom);
 
@@ -65,6 +70,21 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
     socketInstance.on("disconnect", () => {
       console.log("Disconnected from server");
     });
+
+    socketInstance.on("testVideoStream", (res)=>{
+      // const arrayBuffer = res;
+
+      // Convert ArrayBuffer to Blob
+      // const blob = new Blob([arrayBuffer], { type: 'video/mp2t' });
+
+      // Create an object URL for the Blob
+      // const videoUrl = URL.createObjectURL(blob);
+
+      // Set the video source to the object URL
+      // if (frontVideoRef.current) {
+      //   frontVideoRef.current.src = videoUrl;
+      // }
+    })
 
     socketInstance.on("status", (message: string) => {
       setStatus(message);
@@ -83,12 +103,10 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
     if (socket) {
       socket.emit("command", command);
       console.log(`Command sent: ${command}`);
-
       // Start video stream when initialized
       if (command === "takeoff") {
         setVideoStreamActive(true);
-        frontVideoRef.current?.play();
-        topVideoRef.current?.play();
+        // topVideoRef.current?.play();
       }
     }
   };
@@ -171,6 +189,21 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
             <h3 className="text-lg font-semibold mb-4">Drone Controls</h3>
             <div className="grid grid-cols-3 gap-4 mb-4">
               <Button onClick={() => sendCommand("command")}>Initialize</Button>
+              <Button
+                onClick={() => {
+                  if (socket) {
+                    socket.emit("startVideoStream");
+                    const player = new JSMpeg.VideoElement(
+                      topVideoRef.current,
+                      VIDEO_URL
+                    );
+                    console.log(player)
+                    player.play();
+                  }
+                }}
+              >
+                Video
+              </Button>
               <Button onClick={() => sendCommand("takeoff")}>Fly</Button>
               <Button onClick={() => sendCommand("land")}>Land</Button>
             </div>
@@ -204,64 +237,65 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
       </div>
 
       {/* Video Streams */}
-<motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.5, delay: 0.4 }}
-  className="grid grid-cols-1 md:grid-cols-2 gap-6"
->
-  <motion.div whileHover={{ scale: 1.02 }} className="space-y-3">
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground font-medium">
-        Front View
-      </span>
-      <span
-        className={`text-xs ${
-          isVideoStreamActive ? "text-green-500" : "text-muted-foreground"
-        }`}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
-        {isVideoStreamActive ? "Streaming" : "Waiting to Initialize"}
-      </span>
-    </div>
-    <div className="aspect-video rounded-lg overflow-hidden border">
-      <video
-        ref={frontVideoRef}
-        src="https://res.cloudinary.com/do3vqgriw/video/upload/v1733665134/t8snztgpye0ei0jsv1xv.mp4"
-        autoPlay={isVideoStreamActive}
-        muted
-        loop
-        playsInline
-        className="h-full w-full object-cover"
-      />
-    </div>
-  </motion.div>
+        <motion.div whileHover={{ scale: 1.02 }} className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground font-medium">
+              Front View
+            </span>
+            <span
+              className={`text-xs ${
+                isVideoStreamActive ? "text-green-500" : "text-muted-foreground"
+              }`}
+            >
+              {isVideoStreamActive ? "Streaming" : "Waiting to Initialize"}
+            </span>
+          </div>
+          <div className="aspect-video rounded-lg overflow-hidden border">
+            <video
+              ref={frontVideoRef}
+              src="https://res.cloudinary.com/do3vqgriw/video/upload/v1733665134/t8snztgpye0ei0jsv1xv.mp4"
+              autoPlay={isVideoStreamActive}
+              muted
+              loop
+              playsInline
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </motion.div>
 
-  <motion.div whileHover={{ scale: 1.02 }} className="space-y-3">
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground font-medium">
-        Top View
-      </span>
-      <span
-        className={`text-xs ${
-          isVideoStreamActive ? "text-green-500" : "text-muted-foreground"
-        }`}
-      >
-        {isVideoStreamActive ? "Streaming" : "Waiting to Initialize"}
-      </span>
-    </div>
-    <div className="aspect-video rounded-lg border">
-      <video
+        <motion.div whileHover={{ scale: 1.02 }} className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground font-medium">
+              Top View
+            </span>
+            <span
+              className={`text-xs ${
+                isVideoStreamActive ? "text-green-500" : "text-muted-foreground"
+              }`}
+            >
+              {isVideoStreamActive ? "Streaming" : "Waiting to Initialize"}
+            </span>
+          </div>
+          <div className="aspect-video rounded-lg border">
+            <video
         ref={topVideoRef}
         src="https://res.cloudinary.com/do3vqgriw/video/upload/v1733665134/t8snztgpye0ei0jsv1xv.mp4"
         autoPlay={isVideoStreamActive}
         muted
         loop
         playsInline
-        className="h-full w-full object-cover"
+        className="h-full w-full object-covser"
       />
-    </div>
-  </motion.div>
-</motion.div>
+            {/* <canvas ref={topVideoRef} className="h-full w-full object-cover" id="video-canvas" /> */}
+          </div>
+        </motion.div>
+      </motion.div>
 
       {/* Action Buttons */}
       <motion.div

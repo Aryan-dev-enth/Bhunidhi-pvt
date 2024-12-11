@@ -148,7 +148,7 @@ const DroneMap: React.FC<any> = ({
         </Marker>
 
         <Marker position={dronePosition} icon={droneIcon}>
-          <Popup>{drone.title || "Drone"}</Popup>
+          <Popup>{drone?.title || "Drone"}</Popup>
         </Marker>
 
         <Polyline positions={flightPath} color="blue" />
