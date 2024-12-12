@@ -172,24 +172,16 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column */}
         <div className="space-y-6">
-          {/* Motion Status */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            className="bg-secondary rounded-lg p-5 shadow-sm"
-          >
-            <h3 className="text-lg font-semibold mb-4">Motion Status</h3>
-            <MotionChart droneState={droneState} />
-          </motion.div>
+          
 
-          {/* Drone Control */}
-          <motion.div
+        <motion.div
             whileHover={{ scale: 1.02 }}
             className="bg-secondary rounded-lg p-5 shadow-sm"
           >
             <h3 className="text-lg font-semibold mb-4">Drone Controls</h3>
             <div className="grid grid-cols-3 gap-4 mb-4">
               <Button onClick={() => sendCommand("command")}>Initialize</Button>
-              <Button
+              {/* <Button
                 onClick={() => {
                   if (socket) {
                     socket.emit("startVideoStream");
@@ -205,15 +197,18 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
                 Video
               </Button>
               <Button onClick={() => sendCommand("takeoff")}>Fly</Button>
-              <Button onClick={() => sendCommand("land")}>Land</Button>
+              <Button onClick={() => sendCommand("land")}>Land</Button> */}
             </div>
             {renderDroneStateInfo()}
           </motion.div>
-        </div>
-
-        {/* Right Column */}
-        <div className="space-y-6">
-          {/* System Chart */}
+          {/* Motion Status */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            className="bg-secondary rounded-lg p-5 shadow-sm"
+          >
+            <h3 className="text-lg font-semibold mb-4">Motion Status</h3>
+            <MotionChart droneState={droneState} />
+          </motion.div>
           <motion.div
             whileHover={{ scale: 1.02 }}
             className="bg-muted rounded-lg overflow-hidden h-[300px]"
@@ -221,16 +216,25 @@ export function DroneFeed({ droneId }: DroneFeedProps) {
             <SystemChart droneState={droneState} />
           </motion.div>
 
+
+          {/* Drone Control */}
+          
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* System Chart */}
+          
           {/* Drone Map */}
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="bg-muted rounded-lg overflow-hidden h-[300px]"
+            className="bg-muted rounded-lg overflow-hidden h-full"
           >
             <DroneMap
               drone={drone}
               startPoint={startPoint}
               destination={destination}
-              style={{ height: "300px", width: "100%" }}
+              style={{ height: "900px", width: "100%" }}
             />
           </motion.div>
         </div>

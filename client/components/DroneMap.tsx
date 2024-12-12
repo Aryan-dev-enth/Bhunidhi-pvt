@@ -158,48 +158,7 @@ const DroneMap: React.FC<any> = ({
         )}
       </MapContainer>
 
-      <div className="flex justify-between items-center">
-        <div className="space-y-2">
-          <div>Battery: {battery.toFixed(1)}%</div>
-          <div>Altitude: {altitude}m</div>
-          <div>Speed: {speed}m/s</div>
-          <div>Elapsed Time: {elapsedTime}s</div>
-        </div>
-        <div className="space-x-2">
-          <Button
-            onClick={handleStartFlight}
-            disabled={isFlying || isOrbiting}
-          >
-            Start Flight
-          </Button>
-          <Button
-            onClick={handleStopFlight}
-            disabled={!isFlying && !isOrbiting}
-          >
-            Stop Flight
-          </Button>
-        </div>
-      </div>
-      <div className="space-y-2">
-        <div>Adjust Speed:</div>
-        <Slider
-          value={[speed]}
-          onValueChange={(value) => setSpeed(value[0])}
-          min={1}
-          max={10}
-          step={1}
-        />
-      </div>
-      <div className="space-y-2">
-        <div>Adjust Altitude:</div>
-        <Slider
-          value={[altitude]}
-          onValueChange={(value) => setAltitude(value[0])}
-          min={10}
-          max={100}
-          step={10}
-        />
-      </div>
+     
     </div>
   );
 };
